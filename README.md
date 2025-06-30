@@ -1,6 +1,8 @@
 # Herd on the Hill
 
-Source for the V2 of the [Herd on the Hill](https://herdonthehill.org/) site.
+Prototye for the V2 of the [Herd on the Hill](https://herdonthehill.org/) site.
+
+Production source has moved to https://github.com/hothroot/herd
 
 ## Design Goals
 
