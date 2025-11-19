@@ -79,7 +79,7 @@ function invert(s: StateList) : CodeList {
   const inverted: Record<string, string> = {};
   for (const code in s) {
     if (s.hasOwnProperty(code)) {
-        var name: string = s[code]["name"];
+        var name: string = s[code]["name"].toUpperCase();
       inverted[name] = code
     }
   }
@@ -89,8 +89,16 @@ function invert(s: StateList) : CodeList {
 const decoder: CodeList = invert(states);
 
 export function stateDecoder(probe: string) : string {
-    if (states.hasOwnProperty(probe)) {
-        return probe;
+    const ucProbe = probe.toUpperCase();
+    if (states.hasOwnProperty(ucProbe)) {
+        return ucProbe;
     }
-    return decoder[probe];
+    return decoder[ucProbe];
 }
+
+export const allStateNamesAndCodes = Object.keys(states).map(
+  (key) => [key, states[key]["name"].toUpperCase()]).flat();
+
+export const uspsCodesRegExp = /^(AA|AE|AL|AK|AP|AS|AZ|AR|CA|CO|CT|DE|DC|FM|FL|GA|GU|HI|ID|IL|IN|IA|KS|KY|LA|ME|MH|MD|MA|MI|MN|MS|MO|MP|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PW|PA|PR|RI|SC|SD|TN|TX|UT|VT|VI|VA|WA|WV|WI|WY|aa|ae|al|ak|ap|as|az|ar|ca|co|ct|de|dc|fm|fl|ga|gu|hi|id|il|in|ia|ks|ky|la|me|mh|md|ma|mi|mn|ms|mo|mp|mt|ne|nv|nh|nj|nm|ny|nc|nd|oh|ok|or|pw|pa|pr|ri|sc|sd|tn|tx|ut|vt|vi|va|wa|wv|wi|wy)$/;
+  
+export const zipRegExp = /(?<zip>^\d{5}$)|((?<zip5>^\d{5})-(?<plus4>\d{4}$))/;

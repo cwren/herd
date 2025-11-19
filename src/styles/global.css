@@ -14,19 +14,33 @@
 
 @layer base {
   a {
-    @apply  underline text-blue-900
+    @apply underline text-blue-900
   }
   h1 {
-    @apply text-2xl;
+    @apply text-3xl;
   }
   h2 {
     @apply text-xl;
+  }
+  h3 {
+    @apply text-lg font-bold;
   }
   ul {
     @apply list-inside list-disc p-2;
   }
   p {
     @apply p-2;
+  }
+  b {
+    @apply font-bold;
+  }
+  blockquote {
+    margin-left: 2em;
+    margin-right: 2em;
+  }
+  ul {
+    @apply pl-8;
+    list-style-position: outside;
   }
 }
 
@@ -41,7 +55,9 @@ body {
   max-width: 80ch;
   padding: 1rem;
   line-height: 1.5;
-  font-family: Quicksand, Tahoma, Geneva, sans-serif;
+  font-family: "Quicksand", Tahoma, Geneva, sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
   color: #545455;
 }
 
@@ -51,11 +67,15 @@ body {
 
 h1 {
   margin: 1rem 0;
-  font-size: 2.5rem;
+}
+
+h2 {
+  margin: 1rem 0;
 }
 
 .hamburger {
   padding-right: 20px;
+  padding-top: 5px;
   cursor: pointer;
 }
 
@@ -99,7 +119,7 @@ h1 {
 
 @media screen and (min-width: 636px) {
   .nav-links {
-    margin-left: 5em;
+    margin-left: 2em;
     display: block;
     position: static;
     width: auto;
@@ -108,7 +128,7 @@ h1 {
 
   .nav-links a {
     display: inline-block;
-    padding: 15px 20px;
+    padding: 10px 10px;
   }
 
   .hamburger {
@@ -186,7 +206,7 @@ h1 {
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --input: oklch(0.8 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
@@ -245,7 +265,12 @@ h1 {
     @apply bg-background text-foreground;
   }
 }
-
+#graybar {
+    width: 100%;
+    background: #dddddd;
+    text-align: center;
+    padding: 1em;
+}
 #butterbar {
     width: 100%;
     background: #ddd84b;
@@ -265,4 +290,12 @@ h1 {
   [role="button"]:not([disabled]) {
     cursor: pointer;
   }
+}
+
+@font-face {
+  font-family: 'Quicksand';
+  src: url('/Quicksand-VariableFont_wght.ttf') format('truetype');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap; /* Crucial for deferring */
 }

@@ -1,10 +1,13 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
+import { RECAPTCHA_SITE_KEY, SHOW_CAPTCHA } from "astro:env/client";
 
-import { type Address, type Reps } from '@/scripts/letter-state.js';
+import { Button } from "@/components/ui/button"
+import { type Envelope, type Rep, minMessageLength, maxMessageLength } from '@/scripts/letter-state.js';
 import profileRef from '../../assets/profile.png';
+import ReCAPTCHA from "react-google-recaptcha";
+import TextareaAutosize from 'react-textarea-autosize';
+
 
 import React, { useRef, useState } from "react";
 
@@ -14,17 +17,19 @@ const today = new Date().toLocaleString('default', {
     month: 'long',
     year: 'numeric',
 });
+const redMessageLength = 0.9 * maxMessageLength;
+const yellowMessageLength = 0.75 * maxMessageLength;
+
+const messagePlaceholder = "On this occasion, I write to you on a topic of grave importance.";
 
 type Props = {
-    address: Address,
-    reps: Reps,
+    envelope: Envelope,
 };
 
-
-
 export default function Draft(props: Props) {
-    const address = props.address;
-    const reps = props.reps;
+    const envelope = props.envelope;
+    const address = envelope!.address;
+    const reps = envelope!.reps;
 
     const headshot = useRef<HTMLImageElement>(null);
     const uploadInput = useRef<HTMLInputElement>(null);
@@ -32,6 +37,15 @@ export default function Draft(props: Props) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [headshotData, setHeadshotData] = useState("");
     const [headshotSource, setheadshotSource] = useState(profileRef.src);
+    const [captchaData, setCaptchaData] = useState<string | null>(SHOW_CAPTCHA ? null : "DISABLED");
+    const [messageContent, setInputValue] = useState('');
+    const [messageLength, setMessageLength] = useState(0);
+    
+    function handleMessageChange(event: { target: { value: any; }; }) {
+        const text = event.target.value;
+        setInputValue(text);
+        setMessageLength(text.length);
+    };
 
     function handleSubmit() {
         setIsSubmitting(true);
@@ -75,17 +89,21 @@ export default function Draft(props: Props) {
             reader.readAsDataURL(e.target.files[0]);
         }
     }
+    function onCaptcha(token: string | null) {
+        setCaptchaData(token);
+    }
 
     return (
         <form method="POST" action="/letter" onSubmit={handleSubmit}>
             <div className="flow-root">
-                <div className="w-2/3 md:w-1/3 md:float-right">
+                <div id="return-address" className="w-2/3 md:w-1/3 md:float-right">
                     <i>
                         from:
                     </i>
                     <p>
                         {address.name} <br />
                         {address.street} <br />
+                        {address.line2} {address.line2 && <br />}
                         {address.city}, {address.state} {address.zipcode}
                     </p>
                 </div>
@@ -93,24 +111,48 @@ export default function Draft(props: Props) {
             <div className="flow-root">
                 <div className="w-2/3 md:w-1/2 md:float-left">
                     <div className="flex flex-row">
-                        {reps.map((rep: { [x: string]: string; }) =>
-                            <img className="w-1/3 m-1" src={rep['photoURL']} alt={rep['name']} key={rep['name']}/>
+                        {reps.map((rep: Rep) =>
+                            <img className="w-1/3 m-1" src={rep.photoURL} alt={rep.fullName} key={rep.id}/>
                         )}
                     </div>
                     <p>
                         {today}
                     </p>
-                    {reps.map((rep: { [x: string]: string; }) =>
-                        <p className="m-0" key={rep['name']}>
-                            The Honorable {rep['name']},
+                    {reps.map((rep: Rep) =>
+                        <p className="m-0" key={rep.id}>
+                            The Honorable {rep.fullName},
                         </p>
                     )}
                 </div>
             </div>
-            <div className="grid w-full gap-2 h-48">
-                <Textarea id="message" name="message"
-                    placeholder="On this occasion, I write to you on a topic of grave importance." />
+            <div className="grid w-full gap-2 min-h-32 h-fit">
+                <TextareaAutosize id="message" name="message"
+                    maxLength={maxMessageLength}
+                    minLength={minMessageLength}
+                    autoFocus={true}
+                    minRows={7}
+                    value={messageContent}
+                    onChange={handleMessageChange}
+                    placeholder={messagePlaceholder} />
             </div>
+
+            <div className="flow-root w-full">
+                {messageLength < minMessageLength && 
+                    <div className='float-left text-red-600'>
+                        Please write a message that is at least 100 characters long.
+                    </div>
+                }
+                <div className={[
+                    'float-right',
+                    messageLength < minMessageLength ? 'text-red-600' :
+                    messageLength > redMessageLength ? 'text-red-600' :
+                    messageLength > yellowMessageLength ? 'text-yellow-600' :
+                    'text-black'
+                ].join(' ')}>
+                    {messageLength} / {maxMessageLength}
+                </div>
+            </div>
+            
             <div className="flow-root">
                 <div className="w-2/3 md:w-1/2 md:float-right">
                     <div className="flex md:flex-row flex-col">
@@ -130,6 +172,7 @@ export default function Draft(props: Props) {
                     <Button type="button"
                             id="image-upload-button"
                             onClick={initiateUpload}
+                            key="image_upload"
                             >
                         Choose Photo
                     </Button>
@@ -140,27 +183,30 @@ export default function Draft(props: Props) {
                     <p>
                         {address.name}
                     </p>
-                    <Button type="submit" disabled={isSubmitting} className="flex items-center justify-center px-4 py-2">
+                    {SHOW_CAPTCHA && (
+                        <ReCAPTCHA
+                            id="captcha"
+                            sitekey={RECAPTCHA_SITE_KEY}
+                            onChange={onCaptcha}
+                        />)}
+                    <Button data-testid="draft-submit" id="submit" type="submit" disabled={isSubmitting || captchaData === null || messageLength < minMessageLength} className="flex items-center justify-center px-4 py-2">
                         {isSubmitting && (
                             <svg className={"animate-spin h-4 w-4 text-white"} viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                             </svg>
                         )}
-                        {!isSubmitting && (
+                        {!isSubmitting && captchaData === null && (
+                            <span> Please Verify </span>
+                        )}
+                        {!isSubmitting && captchaData !== null && (
                             <span> Submit </span>
                         )}
                     </Button>
-                    <input type="hidden" id="name" name="name" value={address.name} />
-                    <input type="hidden" id="street" name="street" value={address.street} />
-                    <input type="hidden" id="city" name="city" value={address.city} />
-                    <input type="hidden" id="state" name="state" value={address.state} />
-                    <input type="hidden" id="zipcode" name="zipcode" value={address.zipcode} />
+                    <input type="hidden" id="envelope" name="envelope" value={JSON.stringify(envelope)} />
                     <input type="hidden" id="today" name="today" value={today} />
                     <input type="hidden" id="headshot-data" name="headshot-data" value={headshotData} />
-                    {reps.map((rep: { [x: string]: string; }, i: number) =>
-                        <input type="hidden" id={"senator" + i} name={"senator" + i} value={rep['name']} key={rep['name']}/>
-                    )}
+                    <input type="hidden" id="captcha-data" name="captcha-data" value={captchaData ? captchaData : ""} />
                 </div>
             </div>
         </form>

@@ -1,23 +1,41 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import DonatePost from '../content/donate.md';
+import DonateDisclaim from '../content/donate_disclaimer.md';
+
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets'
+import photoData from '@/scripts/photos.js';
+
+const photo = "russell";
+const photos = import.meta.glob<{ default: ImageMetadata }>('/src/assets/photos/*.{jpeg,jpg,png,gif}')
+if (!photos[photoData[photo].imgPath]) throw new Error(`"${photo}" does not exist in glob: "assets/photos/*.{jpeg,jpg,png,gif}"`);
+
+
 const pageTitle = "Donate";
 ---
 <BaseLayout pageTitle={pageTitle}>
+  <div class="mx-auto w-fit">
+    <Image
+      src={photos[photoData[photo].imgPath]()}
+      alt={photoData[photo].altText}
+      width={640}
+      priority={true}
+      style="center"
+      />
+  </div>
 
-    <p>Herd on the Hill volunteers are working for free.</p>
+  <DonatePost />
 
-    <p>Your donation will give us the capacity to help more people reach their Members of Congress in Washington by covering administrative, technology, and legal costs.</p>
+  <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+      <input type="hidden" name="cmd" value="_s-xclick">
+      <input type="hidden" name="hosted_button_id" value="VCLWWSYFMNPM4">
+      <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"
+              name="submit" alt="PayPal - The safer, easier way to pay online!">
+      <img alt="" src="" data-recalc-dims="1">
+  </form>
 
-    <p>Any contribution makes a difference. Thank you.</p>
 
-    <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-        <input type="hidden" name="cmd" value="_s-xclick">
-        <input type="hidden" name="hosted_button_id" value="VCLWWSYFMNPM4">
-        <input type="image" src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"
-               name="submit" alt="PayPal - The safer, easier way to pay online!">
-        <img alt="" src="" data-recalc-dims="1">
-    </form>
-
-    <p>Donations not tax deductible</p>
+ <DonateDisclaim />
 
 </BaseLayout>

@@ -1,8 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import VolunteerRedirect from '../content/contact-volunteer.md';
 const pageTitle = "Contact Us";
 ---
 <BaseLayout pageTitle={pageTitle}>
-  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdW6K7V5NzS1s9z4gntjP3zj2JbmxmZ1eYwPW_aFGhvQzEskA/viewform?embedded=true"
-  width="100%" height="1000">Loading...</iframe>
+  <VolunteerRedirect />
+  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdxWEnSWlT_NxqwNrWPf_IdY0j_jvhHAADuozvqPJp_lTvNmg/viewform?usp=dialog"
+  width="100%" height="1400em" title="Google Form to contact us">Loading...</iframe>
 </BaseLayout>

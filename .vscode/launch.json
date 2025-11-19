@@ -1,11 +1,24 @@
 {
   "version": "0.2.0",
   "configurations": [
+
     {
       "command": "./node_modules/.bin/astro dev",
       "name": "Development server",
       "request": "launch",
       "type": "node-terminal"
-    }
+    },
+    {
+      "command": "CI=true npm run test --verbose",
+      "name": "Unit Tests",
+      "request": "launch",
+      "type": "node-terminal"
+    },
+    {
+      "command": "npx playwright test",
+      "name": "End to End Tests",
+      "request": "launch",
+      "type": "node-terminal"
+    },
   ]
 }

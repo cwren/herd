@@ -1,21 +1,34 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import type { ImageMetadata } from 'astro';
+import { Image } from 'astro:assets'
+import photoData from '@/scripts/photos.js';
+
+import VolunteerCallToAction from '../content/volunteer-cta.md';
+import VolunteerPost from '../content/volunteer.md';
+
+const photo = "volunteers";
+const photos = import.meta.glob<{ default: ImageMetadata }>('/src/assets/photos/*.{jpeg,jpg,png,gif}')
+if (!photos[photoData[photo].imgPath]) throw new Error(`"${photoData[photo].imgPath}" does not exist in glob: "assets/photos/*.{jpeg,jpg,png,gif}"`);
+
 const pageTitle = "Volunteer";
 ---
 <BaseLayout pageTitle={pageTitle}>
-<p>Are you feeling powerless when someone tells you to call your representative or senator? Living in DC, we've got no voice in the U.S. Congress.
-</p>
-<p>
-Herd on the Hill was started in February 2017 to give you and other DC residents a voice by letting you help people outside DC get their Members of Congress to listen to them. So many Members of Congress are refusing to hold town halls, not answering their phones, and letting voice mailboxes fill up.
-</p>
-<p>
-Herd on the Hill volunteers use their proximity to congressional offices in DC to work around these barriers to get Americans' views directly in front of their elected officials.
-</p>
-<p>
-<b><a href=/contact">Contact us</a> to learn more about visiting Capitol Hill and getting involved in outreach and planning behind the scenes.</b>
-</p>
-<p>
-One note: Surrogates decide for themselves whether they want to deliver a particular letter or petition. If the content of the message doesn't align with their own views, they don't have to deliver it.
-</p>
-<p>
-Finally - we are a volunteer-run organization, so we make no promises about the security of this website or the information you send us.  We will use the information you send us to coordinate deliveries of letters and petitions. If our organization is transferred or converted to another organization, that organization may have access to your information. We will not sell your information for commercial purposes. If you have questions about security or privacy, you can contact us at .</BaseLayout>
+
+  <VolunteerCallToAction />
+  
+  <div class="mx-auto w-fit">
+    <Image
+      src={photos[photoData[photo].imgPath]()}
+      alt={photoData[photo].altText}
+      width={500}
+      priority={true}
+      style="center"
+      />
+  </div>
+  
+  <VolunteerPost />
+
+  <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdzojPmhaWzm53ydmt_7pbIhuoOfqqDhRTWpkzA3Q6juSLhKQ/viewform?usp=header" 
+width="100%" height="1200em" title="Google Form to sign up as a volunteer">Loading...</iframe>
+</BaseLayout>

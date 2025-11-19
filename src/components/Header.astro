@@ -2,6 +2,8 @@
 import DevBanner from './DevBanner';
 import Hamburger from './Hamburger.astro';
 import Navigation from './Navigation.astro';
+import { Image } from "astro:assets";
+import logo from "/src/assets/logo.png";
 ---
 <header>
     <DevBanner />
@@ -9,7 +11,7 @@ import Navigation from './Navigation.astro';
         <Hamburger />
         <div>
             <a href="/">
-                <img src="/logo.jpg">
+                <Image src={logo} width="250" height="54" alt="Herd on the Hill">
             </a>
         </div>
         <Navigation />

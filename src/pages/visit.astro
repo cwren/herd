@@ -1,10 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import VisitPost from '../content/visit.md';
+
 const pageTitle = "Visit D.C.";
 ---
 <BaseLayout pageTitle={pageTitle}>
 
-    <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSd6AwvcmAGn7hzfrANJ1iZjYqfdCZld_MOpWO7R7elaR5Dv-w/viewform?embedded=true" 
-    width="100%" height="1000">Loading...</iframe>
+<VisitPost />
+
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdxWEnSWlT_NxqwNrWPf_IdY0j_jvhHAADuozvqPJp_lTvNmg/viewform?usp=pp_url&entry.844577272=I+would+like+help+visiting+my+senator+while+in+DC" 
+width="100%" height="1400em" title="Google Form to request help visiting your senators">Loading...</iframe>
 
 </BaseLayout>

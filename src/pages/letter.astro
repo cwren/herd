@@ -4,20 +4,13 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import AddressForm from '../components/letter/AddressForm';
 import Draft from '../components/letter/Draft';
 import Receipt from '../components/letter/Receipt.astro';
+import Error from '../components/letter/Error.astro';
 
-import { type Address, type Reps } from '@/scripts/letter-state.js';
-import searchReps from '@/scripts/search-reps.ts';
-import letterToPdf from '@/scripts/letter-format.js';
-import { StorageApi } from '@/scripts/letter-store.js';
-
-const pageTitle = "Send a Letter";
-
-var address: Address = {};
-var reps: Reps = [];
-var links: Array<string> =[];
-var isGet = true;
-var isDraft = false;
-var isDone = false;
+import { type Letter, FlowStatus } from '@/scripts/letter-state.js';
+import { searchReps } from '@/scripts/search-reps.ts';
+import { createLetters } from '@/scripts/letter-create.js';
+import { type Address, type Envelope, AddressStatus, emptyAddress } from '@/scripts/letter-state.js';
+import { validateAddress } from "@/scripts/address-validate"
 
 function formToString(value: FormDataEntryValue | null) {
     if (value === null) {
@@ -29,49 +22,103 @@ function formToString(value: FormDataEntryValue | null) {
     return "";
 }
 
-if (Astro.request.method === 'POST') {
-    isGet = false;
-    const formData = await Astro.request.formData();
-    address["name"] = formToString(formData.get("name"));
-    address["street"] = formToString(formData.get("street"));
-    address["city"] = formToString(formData.get("city"));
-    address["state"] = formToString(formData.get("state"));
-    address["zipcode"] = formToString(formData.get("zipcode"));
-    if (formData.has("message")) {
-        const today = formToString(formData.get("today"));
-        const message = formToString(formData.get("message"));
-        const senator0 = formToString(formData.get("senator0"));
-        const senator1 = formToString(formData.get("senator1"));
-        if (senator0 !== "") {
-            reps[0] = { "name" : senator0 };
-        } else {
-            // error
-        }
-        if (senator1 !== "") {
-            reps[1] = { "name" : senator1 };
-        } 
-        let photoData: string | null = formToString(formData.get("headshot-data"));
-        if (!photoData.startsWith("data:image/png")) {
-            photoData = null;
-        }
-        const store = new StorageApi();
-        const letters = reps.map((rep) => {
-            return {
-                filename: `${rep.name} - ${today} - ${address.name}.pdf`,
-                data: letterToPdf(address, rep, today, message, photoData),
-            }
-        });
-        links = await store.uploadLetters(letters);
-        isDone = true; 
-    } else {
-        reps = await searchReps(address);
-        console.log(reps);
-        isDraft = true;
-    }
+function formToBoolean(value: FormDataEntryValue | null) {
+    return (value !== null && typeof value === 'string' && value === 'true');
 }
+
+var flowStatus: FlowStatus = FlowStatus.ERROR; // in case we forgetto set it to something else 
+var address : Address = emptyAddress();
+var envelope : Envelope = null;
+var letters: Array<Letter> = [];
+
+if (Astro.request.method === 'GET') {
+    // start the flow
+    flowStatus = FlowStatus.ADDRESS;
+} else if (Astro.request.method === 'POST') {
+    try {
+        const formData = await Astro.request.formData();
+        if (!formData.has("message")) {
+            // handle address submission
+            var queryAddress = { 
+                name: formToString(formData.get("name")),
+                street: formToString(formData.get("street")),
+                line2: formToString(formData.get("line2")),
+                city: formToString(formData.get("city")),
+                state: formToString(formData.get("state")).toUpperCase(),
+                zipcode: formToString(formData.get("zipcode")),
+                email: formToString(formData.get("email")),
+                subscribe: formToBoolean(formData.get("subscribe")),
+            }
+            try {
+                address = await validateAddress(queryAddress);
+            } catch (error) {
+                console.log("failed to validate address:", error);
+                flowStatus = FlowStatus.ERROR;
+            }
+            if (address) {
+                if (address.status == AddressStatus.EXACT) {
+                    try {
+                        envelope = await searchReps(Astro.url.origin, address);
+                        console.log("created letter envelope");
+                        flowStatus = FlowStatus.DRAFT;
+                    } catch (error) {
+                        console.log("failed to search for electids:", error);
+                        flowStatus = FlowStatus.ERROR;
+                    }
+                } else {
+                    console.log(`requesting adress clarification: ${address.notes}`);
+                    flowStatus = FlowStatus.ADDRESS;
+                }
+            } else {
+                flowStatus = FlowStatus.ERROR;
+            }
+        } else {
+            // handle message submission
+            envelope = JSON.parse(formToString(formData.get("envelope"))) as Envelope;
+            const captchaToken: string | null = formToString(formData.get("captcha-data"));
+            const message = formToString(formData.get("message"));
+            let photoData: string | null = formToString(formData.get("headshot-data"));
+            const today = formToString(formData.get("today"));
+            try {
+                [flowStatus, letters] = await createLetters(envelope, message, photoData, captchaToken, today);
+            } catch (error) {
+                console.log("failed to create letters:", error);
+                flowStatus = FlowStatus.ERROR;
+            }
+        }
+     } catch (error) {
+        console.log("failed to unpack form data:", error);
+        flowStatus = FlowStatus.ERROR;
+    }
+} else {
+    console.log(`received unexpected ${Astro.request.method} request`);
+    flowStatus = FlowStatus.ERROR;
+}
+
+var pageTitle = "Send a Letter";
+switch (flowStatus) {
+    case FlowStatus.ERROR:
+        pageTitle = "Sorry, there was a problem!"
+        break;
+    case FlowStatus.DRAFT:
+        pageTitle = "Write your letter:";
+        break;
+    case FlowStatus.RECEIPT:
+        pageTitle = "Thank you for your letter!";
+        break;
+
+}
+
+/**
+ * GET: enter the letter flow
+ * DRAFT: address entered, pass back signed `envelope`
+ * RECEIPT: success! pass back `letters` array
+ * ERROR: fail out
+ */
 ---
-<BaseLayout pageTitle={pageTitle}>
-    {isGet   && <AddressForm client:load /> }
-    {isDraft && <Draft address={address} reps={reps} client:load /> } 
-    {isDone  && <Receipt links={links} /> }
+<BaseLayout pageTitle={pageTitle} >
+    {flowStatus === FlowStatus.ADDRESS && <AddressForm address={address} client:load client:only="react"/> }
+    {flowStatus === FlowStatus.DRAFT   && <Draft envelope={envelope} client:load client:only="react"/> } 
+    {flowStatus === FlowStatus.RECEIPT && <Receipt letters={letters} /> }
+    {flowStatus === FlowStatus.ERROR   && <Error /> }
 </BaseLayout>

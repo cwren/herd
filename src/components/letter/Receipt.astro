@@ -1,13 +1,35 @@
 ---
-const { links } = Astro.props;
+import { type Letter } from '@/scripts/letter-state.js';
+interface Props {
+      letters: Array<Letter>;
+    }
+const { letters } = Astro.props;
 ---
 
 <p>
-    Thank you for writing to your senators! You can review your 
-    {links.length == 1 ? "draft" : "drafts"} here:
-
-    <ul>
-        {links.map((link: string) => <li><a href={link} target="_blank">letter</a></li>)}
-    </ul>
-
+    We will try to deliver it as soon as we can. 
 </p>
+<p>
+    Please send a message to friends and family to encourage them to join you in advocating 
+    for Congress to stand up to the Trump regime: 
+</p>
+<blockquote>
+    I am turning my anger into action by submitting a letter to my Senators through
+    Herd on the Hill, which will hand deliver my letter to my Senators in Washington, DC. <br/>
+    Join me at <a href="/">herdonthehill.com</a>. 
+</blockquote>
+
+<p>
+    <a href="https://www.facebook.com/herdonhill/" target="_blank">Follow us on Facebook</a> and tell others to follow us too.
+</p>
+
+<div data-testid="letter-list">
+    <p>
+        You can review your {letters.length == 1 ? "letter" : "letters"} here:
+        <ul>
+            {letters.map((letter: Letter) => <li><a href={letter.url} target="_blank">
+                your letter to Senator {letter.recipient}
+            </a></li>)}
+        </ul>
+    </p>
+</div>

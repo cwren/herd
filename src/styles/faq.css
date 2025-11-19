@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "./global.css";
+
+@layer faq {
+  h2 {
+    @apply text-lg font-bold;
+  }
+}

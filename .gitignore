@@ -14,9 +14,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # environment variables
-.env
-.env.production
-.env.dev
+.env*
 
 # macOS-specific files
 .DS_Store
@@ -29,3 +27,9 @@ output.pdf
 credentials.json
 token.json
 .netlify
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/

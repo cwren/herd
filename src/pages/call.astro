@@ -1,21 +1,14 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import CallPost from '../content/call.md';
+
 const pageTitle = "Request a Call";
 ---
 <BaseLayout pageTitle={pageTitle}>
 
-<p>
-    Let us get you connected to a REAL PERSON at your senator's DC office!
-</p>    
+<CallPost />
 
-<p>
-    If you have not gotten through at all when you call about issues, or if you're just getting voicemail, we can try to arrange a call for you with a staffer in your senator's DC office. We would call you using our phones when we are in their DC offices and put you on with a live staff member.
-</p>
+<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSdxWEnSWlT_NxqwNrWPf_IdY0j_jvhHAADuozvqPJp_lTvNmg/viewform?usp=pp_url&entry.844577272=I+would+like+help+calling+my+senator" 
+width="100%" height="1400em" title="Google Form to request help calling your senators">Loading...</iframe>
 
-<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSeLJSV_Q3R8SZn-0cp5ZRobKrZO1Z8Qudq0-CSfx8oaRoYlqg/viewform?embedded=true" 
-width="100%" height="1000" >Loading...</iframe>
-
-<p>
-    Note about Requests for Calls:  We will do our best to arrange a call for you but we may not have resources to meet all requests. If you don't hear from us but really want to do a call, send an email to <a href="mailto:info@herdonthehill.org">info@herdonthehill.org</a> and we'll try to make you a priority.
-</p>
 </BaseLayout>
